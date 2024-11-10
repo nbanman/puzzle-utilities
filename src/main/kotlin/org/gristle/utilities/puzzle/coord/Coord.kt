@@ -18,7 +18,7 @@ interface MCoord  {
     fun mod(other: MCoord): MCoord
     fun max(other: MCoord): MCoord
     fun min(other: MCoord): MCoord
-    fun measure(): Int // todo implement measure for coord
+    fun measure(): Int
     fun lineTo(other: MCoord): List<MCoord>
     fun manhattanDistance(other: MCoord): Int
     fun chebyshevDistance(other: MCoord): Int
@@ -114,6 +114,20 @@ interface Coord : MCoord {
     val x: Int
     val y: Int
 
+    override fun unaryMinus(): Coord
+    operator fun plus(other: Coord): Coord
+    operator fun minus(other: Coord): Coord
+    operator fun times(other: Coord): Coord
+    operator fun div(other: Coord): Coord
+    operator fun rem(other: Coord): Coord
+    fun mod(other: Coord): Coord
+    fun max(other: Coord): Coord
+    fun min(other: Coord): Coord
+    fun lineTo(other: Coord): List<Coord>
+    override fun getNeighbors(): List<Coord>
+
+    fun area(): Int
+
     companion object {
         val ORIGIN = Coord(0, 0)
 
@@ -168,13 +182,29 @@ interface Coord : MCoord {
     }
 }
 
-class CoordImpl internal constructor(override val coordinates: List<Int>) : Coord, MCoordImpl(coordinates) {
+class CoordImpl internal constructor(private val b: MCoordImpl) : Coord, MCoord by b {
     override val x: Int
         get() = coordinates[0]
     override val y: Int
         get() = coordinates[1]
+
+    override fun unaryMinus(): Coord = CoordImpl(b.unaryMinus() as MCoordImpl)
+    override fun plus(other: Coord): Coord = CoordImpl(b.plus(other) as MCoordImpl)
+    override fun minus(other: Coord): Coord = CoordImpl(b.minus(other) as MCoordImpl)
+    override fun times(other: Coord): Coord = CoordImpl(b.times(other) as MCoordImpl)
+    override fun div(other: Coord): Coord = CoordImpl(b.div(other) as MCoordImpl)
+    override fun rem(other: Coord): Coord = CoordImpl(b.rem(other) as MCoordImpl)
+    override fun mod(other: Coord): Coord = CoordImpl(b.mod(other) as MCoordImpl)
+    override fun max(other: Coord): Coord = CoordImpl(b.max(other) as MCoordImpl)
+    override fun min(other: Coord): Coord = CoordImpl(b.min(other) as MCoordImpl)
+    override fun lineTo(other: Coord): List<Coord> = b.lineTo(other)
+        .map { mCoord -> CoordImpl(mCoord as MCoordImpl) }
+    override fun getNeighbors(): List<Coord>  = b.getNeighbors()
+        .map { mCoord -> CoordImpl(mCoord as MCoordImpl) }
+
+    override fun area(): Int = b.measure()
 }
 
 fun Coord(x: Int, y: Int): Coord {
-    return CoordImpl(listOf(x, y))
+    return CoordImpl(MCoordImpl(listOf(x, y)))
 }
